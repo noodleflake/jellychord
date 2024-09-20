@@ -1,0 +1,14 @@
+# Your discord bot token
+discord-token: "Discord Bot Token Here"
+
+# Jellyfin server address
+jf-server: "https://media.example.com/jellyfin"
+
+# Jellyfin Apikey
+jf-token: "jellyfin api key"
+
+# slashcommand group for your bot
+command-group: "jfmusic"
+
+# Number of items to display when searching, min: 1, max: 9
+search-limit: 3
