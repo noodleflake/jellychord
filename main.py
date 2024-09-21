@@ -93,10 +93,10 @@ def playNextTrack(guild, error=None):
         # use libopus until py-cord 2.7
         # change to 'copy' after py-cord 2.7 is out
         audio = discord.FFmpegOpusAudio(url, codec='libopus')
-        audio.read()
+        audio.read() # remove this line when py-cord 2.7 is out
         vc.play(audio, after=lambda e: playNextTrack(guild, e))
     else:
-        asyncio.run(vc.disconnect())
+        asyncio.run_coroutine_threadsafe(vc.disconnect(), vc.loop)
 
 
 '''
