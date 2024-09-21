@@ -87,13 +87,16 @@ def playNextTrack(guild, error=None):
     br = vc.channel.bitrate
     global playing
     global queues
-    playing[guild.id] = queues[guild.id].pop(0)
-    url = JF_APICLIENT.getAudioHls(playing[guild.id]["Id"],br)
-    # use libopus until py-cord 2.7
-    # change to 'copy' after py-cord 2.7 is out
-    audio = discord.FFmpegOpusAudio(url, codec='libopus')
-    audio.read()
-    vc.play(audio, after=lambda e: playNextTrack(guild, e))
+    if queues[guild.id]:
+        playing[guild.id] = queues[guild.id].pop(0)
+        url = JF_APICLIENT.getAudioHls(playing[guild.id]["Id"],br)
+        # use libopus until py-cord 2.7
+        # change to 'copy' after py-cord 2.7 is out
+        audio = discord.FFmpegOpusAudio(url, codec='libopus')
+        audio.read()
+        vc.play(audio, after=lambda e: playNextTrack(guild, e))
+    else:
+        asyncio.run(vc.disconnect())
 
 
 '''
@@ -128,8 +131,5 @@ async def playbyid(ctx: discord.ApplicationContext,
     else:
         await ctx.respond('Playing item')
         await playHelperTrack(items[0], ctx, 0)
-        
-
-
 
 bot.run(config['discord-token'])
