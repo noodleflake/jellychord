@@ -5,10 +5,12 @@ discord-token: "Discord Bot Token Here"
 jf-server: "https://media.example.com/jellyfin"
 
 # Jellyfin Apikey
-jf-token: "jellyfin api key"
+jf-apikey: "jellyfin api key"
 
 # slashcommand group for your bot
+# setting it to "jfmusic" will make the commands be 
+# /jfmusic <something> <parameters>
 command-group: "jfmusic"
 
 # Number of items to display when searching, min: 1, max: 9
-search-limit: 3
+search-limit: 5
