@@ -39,7 +39,7 @@ async def playHelperTrack(item: dict, ctx: discord.ApplicationContext, position:
     # url = JF_APICLIENT.getAudioHls(item["Id"])
     entry = {
         "Artists": item["Artists"],
-        "Title": item["Name"],
+        "Name": item["Name"],
         "Id": item['Id']
     }
     global queues
@@ -145,5 +145,20 @@ async def skip(ctx: discord.ApplicationContext):
     else:
         await ctx.respond('Skipping current track')
         vc.stop()
+
+@cmdgrp.command()
+async def nowplaying(ctx: discord.ApplicationContext):
+    track = playing[ctx.guild_id]
+    if len(track["Artists"]) > 5:
+        artist = "Various Artists"
+    elif len(track["Artists"]) == 0:
+        artist = ''
+    else:
+        artist = ','.join(track["Artists"])
+
+    if artist:
+        await ctx.respond(f'Currently Playing: {artist} - {track["Name"]}')
+    else:
+        await ctx.respond(f'Currently Playing: {track["Name"]}')
 
 bot.run(config['discord-token'])
