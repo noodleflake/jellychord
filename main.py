@@ -51,12 +51,10 @@ async def playHelperTrack(item: dict, ctx: discord.ApplicationContext, position:
     if not ctx.voice_client:
         await startPlayer(ctx)
 
-
 async def playHelperAlbum(item: dict, ctx: discord.ApplicationContext, position: int):
     tracks = await JF_APICLIENT.getAlbumTracks(item['Id'])
     for track in tracks:
         await playHelperTrack(track, ctx, 0)
-
 
 async def startPlayer(ctx: discord.ApplicationContext):
     vc = ctx.voice_client
@@ -75,14 +73,6 @@ async def playTrack(guild: discord.Guild):
         vc.resume()
     else:
         await asyncio.to_thread(playNextTrack, guild)
-        # br = vc.channel.bitrate
-        # global playing
-        # global queues
-        # playing[guild.id] = queues[guild.id].pop(0)
-        # url = JF_APICLIENT.getAudioHls(playing[guild.id]["Id"],br)
-        # audio = discord.FFmpegOpusAudio(url, codec='copy')
-        # await asyncio.to_thread(audio.read())
-        # vc.play(audio, after=lambda e: await playNextTrack(guild, e))
 
 def playNextTrack(guild, error=None):
     vc = guild.voice_client
