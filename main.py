@@ -137,4 +137,13 @@ async def playbyid(ctx: discord.ApplicationContext,
         await ctx.respond('Playing Album')
         await playHelperAlbum(items[0], ctx, 0)
 
+@cmdgrp.command()
+async def skip(ctx: discord.ApplicationContext):
+    vc: discord.VoiceClient = ctx.guild.voice_client
+    if not vc:
+        await ctx.respond('Not currently playing')
+    else:
+        await ctx.respond('Skipping current track')
+        vc.stop()
+
 bot.run(config['discord-token'])
