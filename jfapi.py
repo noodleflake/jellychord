@@ -77,6 +77,18 @@ class JFAPI():
         }
         async with self._session.get(endpoint, params=params) as res:
             return (await res.json())['Items']
+    
+    async def getAlbumTracks(self, albumId: str):
+        await self.checkSession()
+        endpoint = self.__getEndpointUrl('/Items')
+        params = {
+            'ApiKey': self.__apikey,
+            'parentId': albumId,
+            'sortBy': 'ParentIndexNumber,IndexNumber'
+        }
+        async with self._session.get(endpoint, params=params) as res:
+            return (await res.json())['Items']
+
 
 '''
 Data Classes

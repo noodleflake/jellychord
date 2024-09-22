@@ -35,7 +35,7 @@ async def searchHelper(term: str, limit: int = LIMIT, type:str = None):
     res = await JF_APICLIENT.search(term, limit, type)
     return res
 
-async def playHelperTrack(item: dict, ctx: discord.ApplicationContext, position: str):
+async def playHelperTrack(item: dict, ctx: discord.ApplicationContext, position: int):
     # url = JF_APICLIENT.getAudioHls(item["Id"])
     entry = {
         "Artists": item["Artists"],
@@ -52,8 +52,10 @@ async def playHelperTrack(item: dict, ctx: discord.ApplicationContext, position:
         await startPlayer(ctx)
 
 
-async def playHelperAlbum(item: str, guild: int | discord.Guild):
-    pass
+async def playHelperAlbum(item: dict, ctx: discord.ApplicationContext, position: int):
+    tracks = await JF_APICLIENT.getAlbumTracks(item['Id'])
+    for track in tracks:
+        await playHelperTrack(track, ctx, 0)
 
 
 async def startPlayer(ctx: discord.ApplicationContext):
@@ -128,8 +130,11 @@ async def playbyid(ctx: discord.ApplicationContext,
     items = await JF_APICLIENT.getItemsByIds([id])
     if not items:
         await ctx.respond('ID does not exist')
-    else:
-        await ctx.respond('Playing item')
+    elif items[0]["Type"] == "Audio":
+        await ctx.respond('Playing track')
         await playHelperTrack(items[0], ctx, 0)
+    elif items[0]["Type"] == "MusicAlbum":
+        await ctx.respond('Playing Album')
+        await playHelperAlbum(items[0], ctx, 0)
 
 bot.run(config['discord-token'])
