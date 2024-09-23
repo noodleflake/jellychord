@@ -31,7 +31,6 @@ async def searchHelper(term: str, limit: int = LIMIT, type:str = None):
     return res
 
 async def playHelperTrack(item: dict, ctx: discord.ApplicationContext, position: str):
-    # url = JF_APICLIENT.getAudioHls(item["Id"])
     entry = {
         "Artists": item["Artists"],
         "Name": item["Name"],
