@@ -17,11 +17,6 @@ playing = {}
 bot = discord.Bot()
 
 '''
-Data Classes
-'''
-
-
-'''
 Helper Functions
 '''
 async def searchHelper(term: str, limit: int = LIMIT, type:str = None):
@@ -112,6 +107,19 @@ def playNextTrack(guild, error=None):
         playing.pop(guild.id)
         asyncio.run_coroutine_threadsafe(vc.disconnect(), vc.loop)
 
+def getTrackString(item: dict, artistLimit: int = 1):
+    res = ''
+    if len(item["Artists"]) >= artistLimit:
+        res = 'Various Artists'
+    elif item["Artists"]:
+        res = ','.join(item["Artists"])
+    
+    if res:
+        res += ' - '
+    
+    res += item["Name"]
+    return res
+
 
 '''
 Bot Commands
@@ -173,10 +181,7 @@ async def skip(ctx: discord.ApplicationContext):
 async def nowplaying(ctx: discord.ApplicationContext):
     if ctx.guild_id in playing:
         track = playing[ctx.guild_id]
-        if len(track["Artists"]) >= 1:
-            await ctx.respond(f'Currently Playing: {track["Artists"][0]} - {track["Name"]}')
-        else:
-            await ctx.respond(f'Currently Playing: {track["Name"]}')
+        await ctx.respond(f'Currently Playing: {getTrackString(track)}')
     else:
         await ctx.respond('Not Currently Playing')
 
@@ -184,12 +189,7 @@ async def nowplaying(ctx: discord.ApplicationContext):
 async def queue(ctx: discord.ApplicationContext):
     if ctx.guild_id in queues:
         tracks = queues[ctx.guild_id]
-        strs = []
-        for track in tracks:
-            if len(track["Artists"]) >= 1:
-                strs.append(f'{track["Artists"][0]} - {track["Name"]}')
-            else:
-                strs.append(f'{track["Name"]}')
+        strs = [getTrackString(track) for track in tracks]
         await ctx.respond(f'Tracks in queue:\n{"\n".join(strs)}')
     else:
         await ctx.respond('Empty Queue')
