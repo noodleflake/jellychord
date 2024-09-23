@@ -145,7 +145,7 @@ async def play(ctx: discord.ApplicationContext,
     res = await searchHelper(term, limit=1, type=type)
 
     if not res:
-        await ctx.respond('No items match this term')
+        await ctx.respond('No items match your query')
     elif not ctx.author.voice:
         await ctx.respond('You are not in any voice channel')
     elif res[0]["Type"] == "Audio":
