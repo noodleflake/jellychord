@@ -35,35 +35,54 @@ async def searchHelper(term: str, limit: int = LIMIT, type:str = None):
     res = await JF_APICLIENT.search(term, limit, type)
     return res
 
-async def playHelperTrack(item: dict, ctx: discord.ApplicationContext, position: int):
+async def playHelperTrack(item: dict, ctx: discord.ApplicationContext, position: str):
     # url = JF_APICLIENT.getAudioHls(item["Id"])
     entry = {
         "Artists": item["Artists"],
         "Name": item["Name"],
-        "Id": item['Id']
+        "Id": item['Id'],
+        "Length": item['RunTimeTicks'] // 10000000
     }
     global queues
-    # TODO: properly do position in queue
     if not ctx.guild_id in queues:
         queues[ctx.guild_id] = []
-    queues[ctx.guild_id].append(entry)
+    if position == 'last':
+        queues[ctx.guild_id].append(entry)
+    else:
+        queues[ctx.guild_id].insert(0, entry)
 
     if not ctx.voice_client:
         await startPlayer(ctx)
+    elif position == 'now':
+        ctx.voice_client.stop()
 
-async def playHelperAlbum(item: dict, ctx: discord.ApplicationContext, position: int):
+async def playHelperAlbum(item: dict, ctx: discord.ApplicationContext, position: str):
     tracks = await JF_APICLIENT.getAlbumTracks(item['Id'])
-    for track in tracks:
-        await playHelperTrack(track, ctx, 0)
+    entries = [{
+        "Artists": item["Artists"],
+        "Name": item["Name"],
+        "Id": item['Id'],
+        "Length": item['RunTimeTicks'] // 10000000
+    } for item in tracks]
+
+    global queues
+    if not ctx.guild_id in queues:
+        queues[ctx.guild_id] = []
+    if position == 'last':
+        queues[ctx.guild_id].extend(entries)
+    else:
+        queues[ctx.guild_id][0:0] = entries
+    
+    if not ctx.voice_client:
+        await startPlayer(ctx)
+    elif position == 'now':
+        ctx.voice_client.stop()
 
 async def startPlayer(ctx: discord.ApplicationContext):
     vc = ctx.voice_client
     if not vc:
         av = ctx.author.voice
-        if not av:
-            ctx.respond('You are not in any voice channel')
-            return
-        else:
+        if av:
             vc = await av.channel.connect()
             await playTrack(ctx.guild)
 
@@ -81,6 +100,8 @@ def playNextTrack(guild, error=None):
     global queues
     if queues[guild.id]:
         playing[guild.id] = queues[guild.id].pop(0)
+        if not queues[guild.id]: 
+            queues.pop(guild.id)
         url = JF_APICLIENT.getAudioHls(playing[guild.id]["Id"],br)
         # use libopus until py-cord 2.7
         # change to 'copy' after py-cord 2.7 is out
@@ -88,6 +109,7 @@ def playNextTrack(guild, error=None):
         audio.read() # remove this line when py-cord 2.7 is out
         vc.play(audio, after=lambda e: playNextTrack(guild, e))
     else:
+        playing.pop(guild.id)
         asyncio.run_coroutine_threadsafe(vc.disconnect(), vc.loop)
 
 
@@ -118,37 +140,66 @@ async def playbyid(ctx: discord.ApplicationContext,
                    id: discord.Option(str),
                    when: discord.Option(str, choices=['now', 'next', 'last'], required=False)):
     items = await JF_APICLIENT.getItemsByIds([id])
+    if not when:
+        when = 'last'
     if not items:
         await ctx.respond('ID does not exist')
     elif items[0]["Type"] == "Audio":
+        await playHelperTrack(items[0], ctx, when)
+    elif items[0]["Type"] == "MusicAlbum":
+        await playHelperAlbum(items[0], ctx, when)
+
+    if items and not ctx.voice_client:
+        await ctx.respond('You are not in any voice channel')
+    elif items[0]["Type"] == "Audio":
         await ctx.respond('Playing track')
-        await playHelperTrack(items[0], ctx, 0)
     elif items[0]["Type"] == "MusicAlbum":
         await ctx.respond('Playing Album')
-        await playHelperAlbum(items[0], ctx, 0)
+
 
 @cmdgrp.command()
 async def skip(ctx: discord.ApplicationContext):
-    vc: discord.VoiceClient = ctx.guild.voice_client
-    if not vc:
+    if not ctx.voice_client:
         await ctx.respond('Not currently playing')
     else:
         await ctx.respond('Skipping current track')
-        vc.stop()
+        ctx.voice_client.stop()
 
 @cmdgrp.command()
 async def nowplaying(ctx: discord.ApplicationContext):
-    track = playing[ctx.guild_id]
-    if len(track["Artists"]) > 5:
-        artist = "Various Artists"
-    elif len(track["Artists"]) == 0:
-        artist = ''
+    if ctx.guild_id in playing:
+        track = playing[ctx.guild_id]
+        if len(track["Artists"]) >= 1:
+            await ctx.respond(f'Currently Playing: {track["Artists"][0]} - {track["Name"]}')
+        else:
+            await ctx.respond(f'Currently Playing: {track["Name"]}')
     else:
-        artist = ','.join(track["Artists"])
+        await ctx.respond('Not Currently Playing')
 
-    if artist:
-        await ctx.respond(f'Currently Playing: {artist} - {track["Name"]}')
+@cmdgrp.command()
+async def queue(ctx: discord.ApplicationContext):
+    if ctx.guild_id in queues:
+        tracks = queues[ctx.guild_id]
+        strs = []
+        for track in tracks:
+            if len(track["Artists"]) >= 1:
+                strs.append(f'{track["Artists"][0]} - {track["Name"]}')
+            else:
+                strs.append(f'{track["Name"]}')
+        await ctx.respond(f'Tracks in queue:\n{"\n".join(strs)}')
     else:
-        await ctx.respond(f'Currently Playing: {track["Name"]}')
+        await ctx.respond('Empty Queue')
+
+@cmdgrp.command()
+async def start(ctx: discord.ApplicationContext):
+    if ctx.guild_id in queues and ctx.author.voice and not ctx.voice_client:
+        await ctx.respond('Starting Playback')
+        await startPlayer(ctx)
+    elif ctx.guild_id not in queues:
+        await ctx.respond('No tracks to play')
+    elif ctx.guild_id in playing or ctx.voice_client:
+        await ctx.respond('Already Playing')
+    else:
+        await ctx.respond('You are not in any voice channel')
 
 bot.run(config['discord-token'])
