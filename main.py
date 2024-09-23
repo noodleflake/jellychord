@@ -219,7 +219,7 @@ async def resume(ctx: discord.ApplicationContext):
 Debug Commands
 '''
 if DEBUG:
-    dbgcmd = bot.create_group('jfmusic_debug', guild_ids=[969479656069804063])
+    dbgcmd = bot.create_group('jfmbdbg', guild_ids=[969479656069804063])
 
     @dbgcmd.command()
     async def playbyid(ctx: discord.ApplicationContext,
