@@ -132,22 +132,33 @@ async def search(ctx: discord.ApplicationContext,
     
     await ctx.defer(invisible=True)
     res = await searchHelper(term, type=type)
-    entries = [f'{i["Artists"][0]} - {i["Name"]}' for i in res]
+    entries = [{getTrackString(i)} for i in res]
     await ctx.respond('\n'.join(entries))
 
 @cmdgrp.command()
 async def play(ctx: discord.ApplicationContext,
                term: discord.Option(str),
                type: discord.Option(str, choices=['Soundtrack', 'Album'], required=False),
-               when: discord.Option(str, choices=['now', 'next', 'last'], required=False)):
+               when: discord.Option(str, choices=['now', 'next', 'last'], required=False) = 'last'):
     
     await ctx.defer(invisible=True)
     res = await searchHelper(term, limit=1, type=type)
 
+    if not res:
+        await ctx.respond('No items match this term')
+    elif not ctx.author.voice:
+        await ctx.respond('You are not in any voice channel')
+    elif res[0]["Type"] == "Audio":
+        await ctx.respond(f'Playing track {getTrackString(res[0])}')
+        await playHelperTrack(res[0], ctx, when)
+    elif res[0]["Type"] == "MusicAlbum":
+        await ctx.respond(f'Playing Album {getTrackString(res[0])}')
+        await playHelperAlbum(res[0], ctx, when)
+
 @cmdgrp.command()
 async def playbyid(ctx: discord.ApplicationContext,
                    id: discord.Option(str),
-                   when: discord.Option(str, choices=['now', 'next', 'last'], required=False)):
+                   when: discord.Option(str, choices=['now', 'next', 'last'], required=False) = 'last'):
     
     await ctx.defer(invisible=True)
     items = await JF_APICLIENT.getItemsByIds([id])
@@ -158,9 +169,7 @@ async def playbyid(ctx: discord.ApplicationContext,
         await ctx.respond('Playing track')
     elif items[0]["Type"] == "MusicAlbum":
         await ctx.respond('Playing Album')
-
-    if not when:
-        when = 'last'
+    
     if not items:
         await ctx.respond('ID does not exist')
     elif items[0]["Type"] == "Audio":
