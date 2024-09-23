@@ -98,7 +98,7 @@ def playNextTrack(guild, error=None):
     br = vc.channel.bitrate
     global playing
     global queues
-    if queues[guild.id]:
+    if guild.id in queues:
         playing[guild.id] = queues[guild.id].pop(0)
         if not queues[guild.id]: 
             queues.pop(guild.id)
@@ -140,6 +140,14 @@ async def playbyid(ctx: discord.ApplicationContext,
                    id: discord.Option(str),
                    when: discord.Option(str, choices=['now', 'next', 'last'], required=False)):
     items = await JF_APICLIENT.getItemsByIds([id])
+
+    if items and not ctx.author.voice:
+        await ctx.respond('You are not in any voice channel')
+    elif items[0]["Type"] == "Audio":
+        await ctx.respond('Playing track')
+    elif items[0]["Type"] == "MusicAlbum":
+        await ctx.respond('Playing Album')
+
     if not when:
         when = 'last'
     if not items:
@@ -148,14 +156,6 @@ async def playbyid(ctx: discord.ApplicationContext,
         await playHelperTrack(items[0], ctx, when)
     elif items[0]["Type"] == "MusicAlbum":
         await playHelperAlbum(items[0], ctx, when)
-
-    if items and not ctx.voice_client:
-        await ctx.respond('You are not in any voice channel')
-    elif items[0]["Type"] == "Audio":
-        await ctx.respond('Playing track')
-    elif items[0]["Type"] == "MusicAlbum":
-        await ctx.respond('Playing Album')
-
 
 @cmdgrp.command()
 async def skip(ctx: discord.ApplicationContext):
@@ -201,5 +201,21 @@ async def start(ctx: discord.ApplicationContext):
         await ctx.respond('Already Playing')
     else:
         await ctx.respond('You are not in any voice channel')
+
+@cmdgrp.command()
+async def pause(ctx: discord.ApplicationContext):
+    if ctx.voice_client:
+        await ctx.respond('Pausing playback')
+        ctx.voice_client.pause()
+    else:
+        await ctx.respond('Not connect to any voice channel')
+
+@cmdgrp.command()
+async def resume(ctx: discord.ApplicationContext):
+    if ctx.voice_client:
+        await ctx.respond('Resuming playback')
+        ctx.voice_client.resume()
+    else:
+        await ctx.respond('Not connect to any voice channel')
 
 bot.run(config['discord-token'])
