@@ -123,6 +123,7 @@ async def search(ctx: discord.ApplicationContext,
                  term: discord.Option(str),
                  type: discord.Option(str, choices=['Soundtrack', 'Album'], required=False)):
     
+    await ctx.defer(invisible=True)
     res = await searchHelper(term, type=type)
     entries = [f'{i["Artists"][0]} - {i["Name"]}' for i in res]
     await ctx.respond('\n'.join(entries))
@@ -132,13 +133,16 @@ async def play(ctx: discord.ApplicationContext,
                term: discord.Option(str),
                type: discord.Option(str, choices=['Soundtrack', 'Album'], required=False),
                when: discord.Option(str, choices=['now', 'next', 'last'], required=False)):
-
+    
+    await ctx.defer(invisible=True)
     res = await searchHelper(term, limit=1, type=type)
 
 @cmdgrp.command()
 async def playbyid(ctx: discord.ApplicationContext,
                    id: discord.Option(str),
                    when: discord.Option(str, choices=['now', 'next', 'last'], required=False)):
+    
+    await ctx.defer(invisible=True)
     items = await JF_APICLIENT.getItemsByIds([id])
 
     if items and not ctx.author.voice:
