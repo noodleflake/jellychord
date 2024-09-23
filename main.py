@@ -10,6 +10,7 @@ with open('config.yml', 'r', encoding='utf8') as conffile:
 
 JF_APICLIENT = JFAPI(config['jf-server'],config['jf-apikey'])
 LIMIT = max(1, min(config['search-limit'], 9))
+DEBUG = True
 
 queues = {}
 playing = {}
@@ -119,6 +120,10 @@ def getTrackString(item: dict, artistLimit: int = 1):
     res += item["Name"]
     return res
 
+'''
+View Class
+'''
+
 
 '''
 Bot Commands
@@ -154,28 +159,6 @@ async def play(ctx: discord.ApplicationContext,
     elif res[0]["Type"] == "MusicAlbum":
         await ctx.respond(f'Playing Album {getTrackString(res[0])}')
         await playHelperAlbum(res[0], ctx, when)
-
-@cmdgrp.command()
-async def playbyid(ctx: discord.ApplicationContext,
-                   id: discord.Option(str),
-                   when: discord.Option(str, choices=['now', 'next', 'last'], required=False) = 'last'):
-    
-    await ctx.defer(invisible=True)
-    items = await JF_APICLIENT.getItemsByIds([id])
-
-    if items and not ctx.author.voice:
-        await ctx.respond('You are not in any voice channel')
-    elif items[0]["Type"] == "Audio":
-        await ctx.respond('Playing track')
-    elif items[0]["Type"] == "MusicAlbum":
-        await ctx.respond('Playing Album')
-    
-    if not items:
-        await ctx.respond('ID does not exist')
-    elif items[0]["Type"] == "Audio":
-        await playHelperTrack(items[0], ctx, when)
-    elif items[0]["Type"] == "MusicAlbum":
-        await playHelperAlbum(items[0], ctx, when)
 
 @cmdgrp.command()
 async def skip(ctx: discord.ApplicationContext):
@@ -229,5 +212,33 @@ async def resume(ctx: discord.ApplicationContext):
         ctx.voice_client.resume()
     else:
         await ctx.respond('Not connect to any voice channel')
+
+'''
+Debug Commands
+'''
+if DEBUG:
+    dbgcmd = bot.create_group('jfmusic_debug', guild_ids=[969479656069804063])
+
+    @dbgcmd.command()
+    async def playbyid(ctx: discord.ApplicationContext,
+                    id: discord.Option(str),
+                    when: discord.Option(str, choices=['now', 'next', 'last'], required=False) = 'last'):
+        
+        await ctx.defer(invisible=True)
+        items = await JF_APICLIENT.getItemsByIds([id])
+
+        if items and not ctx.author.voice:
+            await ctx.respond('You are not in any voice channel')
+        elif items[0]["Type"] == "Audio":
+            await ctx.respond('Playing track')
+        elif items[0]["Type"] == "MusicAlbum":
+            await ctx.respond('Playing Album')
+        
+        if not items:
+            await ctx.respond('ID does not exist')
+        elif items[0]["Type"] == "Audio":
+            await playHelperTrack(items[0], ctx, when)
+        elif items[0]["Type"] == "MusicAlbum":
+            await playHelperAlbum(items[0], ctx, when)
 
 bot.run(config['discord-token'])
