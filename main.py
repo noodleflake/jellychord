@@ -10,7 +10,8 @@ with open('config.yml', 'r', encoding='utf8') as conffile:
 
 JF_APICLIENT = JFAPI(config['jf-server'],config['jf-apikey'])
 LIMIT = max(1, min(config['search-limit'], 25))
-DEBUG = True
+DEBUG = config["enable-debug"]
+DEBUG_SERVER = config["debug-server"]
 
 queues = {}
 playing = {}
@@ -136,7 +137,10 @@ def getTrackString(item: dict, artistLimit: int = 1, type: bool = False):
 '''
 Bot Commands
 '''
-cmdgrp = bot.create_group(config['command-group'], guild_ids=[969479656069804063])
+if DEBUG:
+    cmdgrp = bot.create_group(config['command-group'], guild_ids=[DEBUG_SERVER])
+else:
+    cmdgrp = bot.create_group(config['command-group'])
 
 @cmdgrp.command()
 async def search(ctx: discord.ApplicationContext, 
@@ -255,7 +259,7 @@ async def resume(ctx: discord.ApplicationContext):
 Debug Commands
 '''
 if DEBUG:
-    dbgcmd = bot.create_group('jfmbdbg', guild_ids=[969479656069804063])
+    dbgcmd = bot.create_group('jfmbdbg', guild_ids=[DEBUG_SERVER])
 
     @dbgcmd.command()
     async def playbyid(ctx: discord.ApplicationContext,

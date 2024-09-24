@@ -14,3 +14,9 @@ command-group: "jfmusic"
 
 # Number of items to display when searching, min: 1, max: 9
 search-limit: 5
+
+# debug mode
+# when debug mode is enabled, commands will only be exposed to the specified debug server
+# debug commands will also be enabled
+enable-debug: false
+debug-server: 123456789012345678
