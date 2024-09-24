@@ -271,7 +271,7 @@ async def stop(ctx: discord.ApplicationContext):
 async def shuffle(ctx: discord.ApplicationContext):
     global queues
     if not queues[ctx.guild_id]:
-        await ctx.respond('Empty playlist')
+        await ctx.respond('Playlist is empty')
     else:
         await ctx.respond('Shuffling playlist')
         random.shuffle(queues[ctx.guild_id])
@@ -280,11 +280,41 @@ async def shuffle(ctx: discord.ApplicationContext):
 async def remove(ctx: discord.ApplicationContext,
                  index: discord.Option(int, min_value = 1)):
     global queues
-    if not queues[ctx.guild_id] or len(ctx.guild_id) < index:
+    if not queues[ctx.guild_id]:
+        await ctx.respond('Queue is empty')
+    elif len(queues[ctx.guild_id]) < index:
         await ctx.respond('Specified index does not exist')
     else:
         item = queues[ctx.guild_id].pop(index-1)
-        await ctx.respond(f'Deleted item: {getTrackString(item)}')
+        if not queues[ctx.guild_id]:
+            queues.pop(ctx.guild_id)
+        await ctx.respond(f'Deleted track: {getTrackString(item)}')
+
+@cmdgrp.command()
+async def promote(ctx: discord.ApplicationContext,
+                  index: discord.Option(int, min_value = 1)):
+    global queues
+    if not queues[ctx.guild_id]:
+        await ctx.respond('Playlist is empty')
+    elif len(queues[ctx.guild_id]) < index:
+        await ctx.respond('Specified index does not exist')
+    else:
+        item = queues[ctx.guild_id].pop(index-1)
+        queues[ctx.guild_id].insert(0, item)
+        await ctx.respond(f'Promoted track to the front: {getTrackString(item)}')
+
+@cmdgrp.command()
+async def demote(ctx: discord.ApplicationContext,
+                 index: discord.Option(int, min_value = 1)):
+    global queues
+    if not queues[ctx.guild_id]:
+        await ctx.respond('Playlist is empty')
+    elif len(queues[ctx.guild_id]) < index:
+        await ctx.respond('Specified index does not exist')
+    else:
+        item = queues[ctx.guild_id].pop(index-1)
+        queues[ctx.guild_id].append(item)
+        await ctx.respond(f'Promoted track to the front: {getTrackString(item)}')
 
 '''
 Debug Commands

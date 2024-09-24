@@ -58,13 +58,17 @@ This list will assume the default prefix of `jfmusic`. This can be changed in th
 - `/jfmusic shuffle`
   Shuffles the playlist
 - `/jfmusic remove <index>`
-  Removes the specified index from the playlist. Index starts with 1.
+  Removes the item at the specified index from the playlist. Index starts with 1.
+- `/jfmusic promote <index>`
+  Promotes the item at the specified index from the playlist to the front. Index starts with 1.
+- `/jfmusic demote <index>`
+  Demotes the item at the specified index from the playlist to the back. Index starts with one
 
 ## Known limitations / issues / missing features
 
 Intend to fix:
 
-- No queue management functions: remove, bump to next, demote to last, play now
+- No queue management functions: play now
 - No elapsed time in playback status
 - No proper pagination in playlist
 
