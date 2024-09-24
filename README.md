@@ -56,14 +56,17 @@ This list will assume the default prefix of `jfmusic`. This can be changed in th
 - `/jfmusic stop`
   Stops playback and clears the playlist
 
-## Known limitations / issues
+## Known limitations / issues / missing features
 
 Intend to fix:
 
 - No queue management functions
-- No stop functions
 - No elapsed time in playback status
 
 Framework Limitation:
 
 - Stage channels might be broken
+
+I don't need myself but you are welcome to send PRs:
+
+- Login as Jellyfin user instead of using apikey
