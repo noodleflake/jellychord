@@ -12,8 +12,9 @@ jf-apikey: "jellyfin api key"
 # /jfmusic <something> <parameters>
 command-group: "jfmusic"
 
-# Number of items to display when searching, min: 1, max: 9
-search-limit: 5
+# Number of items to display when searching, min: 1
+# Setting too high may result in causing DoS attack on server
+search-limit: 25
 
 # debug mode
 # when debug mode is enabled, commands will only be exposed to the specified debug server

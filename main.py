@@ -153,7 +153,7 @@ async def search(ctx: discord.ApplicationContext,
     res = await searchHelper(term, type=type)
     if not res:
         await ctx.respond("No items match your query.")
-    elif not ctx.author.voice:
+    elif not ctx.author.voice and not ctx.voice_client:
         await ctx.respond('You are not in any voice channel')
     else:
         entries = []
@@ -197,7 +197,7 @@ async def play(ctx: discord.ApplicationContext,
 
     if not res:
         await ctx.respond('No items match your query')
-    elif not ctx.author.voice:
+    elif not ctx.author.voice and not ctx.voice_client:
         await ctx.respond('You are not in any voice channel')
     else:
         await ctx.respond(f'Playing {getTrackString(res[0], type=True)}')
