@@ -9,7 +9,7 @@ with open('config.yml', 'r', encoding='utf8') as conffile:
     config = yaml.load(conffile, yaml.loader.Loader)
 
 JF_APICLIENT = JFAPI(config['jf-server'],config['jf-apikey'])
-LIMIT = max(1, min(config['search-limit'], 9))
+LIMIT = max(1, min(config['search-limit'], 25))
 DEBUG = True
 
 queues = {}
@@ -73,6 +73,12 @@ async def playHelperAlbum(item: dict, ctx: discord.ApplicationContext, position:
     elif position == 'now':
         ctx.voice_client.stop()
 
+async def playHelperGeneric(item: dict, ctx: discord.ApplicationContext, position: str):
+    if item["Type"] == "MusicAlbum":
+        await playHelperAlbum(item, ctx, position)
+    else:
+        await playHelperTrack(item, ctx, position)
+
 async def startPlayer(ctx: discord.ApplicationContext):
     vc = ctx.voice_client
     if not vc:
@@ -135,12 +141,40 @@ cmdgrp = bot.create_group(config['command-group'], guild_ids=[969479656069804063
 @cmdgrp.command()
 async def search(ctx: discord.ApplicationContext, 
                  term: discord.Option(str),
-                 type: discord.Option(str, choices=['Soundtrack', 'Album'], required=False)):
+                 type: discord.Option(str, choices=['Soundtrack', 'Album'], required=False),
+                 when: discord.Option(str, choices=['now', 'next', 'last'], required=False) = 'last'):
     
     await ctx.defer(invisible=True)
     res = await searchHelper(term, type=type)
-    entries = [{getTrackString(i)} for i in res]
-    await ctx.respond('\n'.join(entries))
+    if not res:
+        await ctx.respond("No items match your query.")
+    elif not ctx.author.voice:
+        await ctx.respond('You are not in any voice channel')
+    else:
+        entries = []
+        for i in range(len(res)):
+            entries.append(discord.SelectOption(
+                label = getTrackString(res[i]),
+                value = str(i)
+            ))
+        # entries = [discord.SelectOption(label=getTrackString(i, type=True)) for i in res]
+
+        class searchSelectView(discord.ui.View):
+            async def on_timeout(self):
+                self.disable_all_items()
+                await self.message.edit("Selection timed out.")
+
+            @discord.ui.select(
+                select_type=discord.ComponentType.string_select,
+                max_values=1, min_values=1,
+                options=entries
+            )
+            async def select_callback(self, select: discord.ui.Select, interaction: discord.Interaction):
+                self.disable_all_items()
+                await interaction.response.edit_message(content=f'Playing {getTrackString(res[0], type=True)}',view=None)
+                await playHelperGeneric(res[int(select.values[0])], ctx, when)
+
+        await ctx.respond('Select an item to play:', view=searchSelectView())
 
 @cmdgrp.command()
 async def play(ctx: discord.ApplicationContext,
@@ -157,10 +191,7 @@ async def play(ctx: discord.ApplicationContext,
         await ctx.respond('You are not in any voice channel')
     else:
         await ctx.respond(f'Playing {getTrackString(res[0], type=True)}')
-        if res[0]["Type"] == "Audio":
-            await playHelperTrack(res[0], ctx, when)
-        elif res[0]["Type"] == "MusicAlbum":
-            await playHelperAlbum(res[0], ctx, when)
+        await playHelperGeneric(res[0], ctx, when)
 
 @cmdgrp.command()
 async def skip(ctx: discord.ApplicationContext):
@@ -235,23 +266,7 @@ if DEBUG:
             await ctx.respond('You are not in any voice channel')
         else:
             await ctx.respond(f'Playing {getTrackString(res[0], type=True)}')
-            if res[0]["Type"] == "Audio":
-                await playHelperTrack(res[0], ctx, when)
-            elif res[0]["Type"] == "MusicAlbum":
-                await playHelperAlbum(res[0], ctx, when)
+            await playHelperGeneric(res[0], ctx, when)
 
-        # if items and not ctx.author.voice:
-        #     await ctx.respond('You are not in any voice channel')
-        # elif items[0]["Type"] == "Audio":
-        #     await ctx.respond('Playing track')
-        # elif items[0]["Type"] == "MusicAlbum":
-        #     await ctx.respond('Playing Album')
-        
-        # if not items:
-        #     await ctx.respond('ID does not exist')
-        # elif items[0]["Type"] == "Audio":
-        #     await playHelperTrack(items[0], ctx, when)
-        # elif items[0]["Type"] == "MusicAlbum":
-        #     await playHelperAlbum(items[0], ctx, when)
 
 bot.run(config['discord-token'])
