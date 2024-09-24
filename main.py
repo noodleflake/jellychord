@@ -163,8 +163,7 @@ async def search(ctx: discord.ApplicationContext,
                 label = getTrackString(res[i]),
                 value = str(i)
             ))
-        # entries = [discord.SelectOption(label=getTrackString(i, type=True)) for i in res]
-
+        
         class searchSelectView(discord.ui.View):
             def __init__(self):
                 super(searchSelectView, self).__init__()
