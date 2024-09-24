@@ -62,7 +62,9 @@ This list will assume the default prefix of `jfmusic`. This can be changed in th
 - `/jfmusic promote <index>`
   Promotes the item at the specified index from the playlist to the front. Index starts with 1.
 - `/jfmusic demote <index>`
-  Demotes the item at the specified index from the playlist to the back. Index starts with one
+  Demotes the item at the specified index from the playlist to the back. Index starts with 1.
+- `/jfmusic playnow <index>`
+  Skips the current playing track and play the specified index from the playlist. Index starts with 1. This does NOT discard tracks before the specified index. How this works is promote the specified index then skip the current track.
 
 ## Known limitations / issues / missing features
 

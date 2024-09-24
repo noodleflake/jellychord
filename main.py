@@ -316,6 +316,20 @@ async def demote(ctx: discord.ApplicationContext,
         queues[ctx.guild_id].append(item)
         await ctx.respond(f'Promoted track to the front: {getTrackString(item)}')
 
+@cmdgrp.command()
+async def playnow(ctx: discord.ApplicationContext,
+                  index: discord.Option(int, min_value=1)):
+    global queues
+    if not queues[ctx.guild_id]:
+        await ctx.respond('Playlist is empty')
+    elif len(queues[ctx.guild_id]) < index:
+        await ctx.respond('Specified index does not exist')
+    else:
+        item = queues[ctx.guild_id].pop(index-1)
+        queues[ctx.guild_id].insert(0, item)
+        await ctx.respond(f'Now playing track: {getTrackString(item)}')
+        ctx.voice_client.stop()
+
 '''
 Debug Commands
 '''
