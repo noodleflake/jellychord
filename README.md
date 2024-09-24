@@ -60,7 +60,7 @@ This list will assume the default prefix of `jfmusic`. This can be changed in th
 
 Intend to fix:
 
-- No queue management functions
+- No queue management functions: remove, shuffle, bump to next, demote to last, play now
 - No elapsed time in playback status
 
 Framework Limitation:
