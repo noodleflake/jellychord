@@ -11,7 +11,8 @@ with open('config.yml', 'r', encoding='utf8') as conffile:
 JF_APICLIENT = JFAPI(config['jf-server'],config['jf-apikey'])
 LIMIT = max(1, min(config['search-limit'], 25))
 DEBUG = config["enable-debug"]
-DEBUG_SERVER = config["debug-server"]
+if DEBUG:
+    DEBUG_SERVER = config["debug-server"]
 
 queues = {}
 playing = {}
