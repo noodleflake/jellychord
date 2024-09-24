@@ -117,11 +117,11 @@ def getTrackString(item: dict, artistLimit: int = 1, type: bool = False):
         res = 'Track: '
 
     if len(item["Artists"]) >= artistLimit:
-        res = 'Various Artists'
+        res += 'Various Artists'
     elif item["Artists"]:
-        res = ','.join(item["Artists"])
+        res += ','.join(item["Artists"])
     
-    if res:
+    if item["Artists"]:
         res += ' - '
     
     res += item["Name"]
