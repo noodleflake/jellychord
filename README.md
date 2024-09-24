@@ -53,6 +53,8 @@ This list will assume the default prefix of `jfmusic`. This can be changed in th
   Pauses playback
 - `/jfmusic resume`
   Resumes playback
+- `/jfmusic stop`
+  Stops playback and clears the playlist
 
 ## Known limitations / issues
 

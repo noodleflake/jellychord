@@ -256,6 +256,16 @@ async def resume(ctx: discord.ApplicationContext):
     else:
         await ctx.respond('Not connect to any voice channel')
 
+@cmdgrp.command()
+async def stop(ctx: discord.ApplicationContext):
+    if ctx.voice_client:
+        await ctx.respond('Stopping playback')
+        global queues
+        queues.pop(ctx.guild_id)
+        ctx.voice_client.stop()
+    else:
+        await ctx.respond('Not connected to any voice channel')
+
 '''
 Debug Commands
 '''
