@@ -53,3 +53,15 @@ This list will assume the default prefix of `jfmusic`. This can be changed in th
   Pauses playback
 - `/jfmusic resume`
   Resumes playback
+
+## Known limitations / issues
+
+Intend to fix:
+
+- No queue management functions
+- No stop functions
+- No elapsed time in playback status
+
+Framework Limitation:
+
+- Stage channels might be broken
