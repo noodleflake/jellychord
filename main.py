@@ -2,6 +2,7 @@ import discord
 import discord.ext
 import asyncio
 import yaml
+import random
 
 from jfapi import JFAPI
 
@@ -265,6 +266,15 @@ async def stop(ctx: discord.ApplicationContext):
         ctx.voice_client.stop()
     else:
         await ctx.respond('Not connected to any voice channel')
+
+@cmdgrp.command()
+async def shuffle(ctx: discord.ApplicationContext):
+    global queues
+    if not queues[ctx.guild_id]:
+        await ctx.respond('Empty playlist')
+    else:
+        await ctx.respond('Shuffling playlist')
+        random.shuffle(queues[ctx.guild_id])
 
 '''
 Debug Commands

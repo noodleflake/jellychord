@@ -55,12 +55,14 @@ This list will assume the default prefix of `jfmusic`. This can be changed in th
   Resumes playback
 - `/jfmusic stop`
   Stops playback and clears the playlist
+- `/jfmusic shuffle`
+  Shuffles the playlist
 
 ## Known limitations / issues / missing features
 
 Intend to fix:
 
-- No queue management functions: remove, shuffle, bump to next, demote to last, play now
+- No queue management functions: remove, bump to next, demote to last, play now
 - No elapsed time in playback status
 
 Framework Limitation:
