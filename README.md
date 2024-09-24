@@ -57,6 +57,8 @@ This list will assume the default prefix of `jfmusic`. This can be changed in th
   Stops playback and clears the playlist
 - `/jfmusic shuffle`
   Shuffles the playlist
+- `/jfmusic remove <index>`
+  Removes the specified index from the playlist. Index starts with 1.
 
 ## Known limitations / issues / missing features
 
@@ -64,6 +66,7 @@ Intend to fix:
 
 - No queue management functions: remove, bump to next, demote to last, play now
 - No elapsed time in playback status
+- No proper pagination in playlist
 
 Framework Limitation:
 

@@ -276,6 +276,16 @@ async def shuffle(ctx: discord.ApplicationContext):
         await ctx.respond('Shuffling playlist')
         random.shuffle(queues[ctx.guild_id])
 
+@cmdgrp.command()
+async def remove(ctx: discord.ApplicationContext,
+                 index: discord.Option(int, min_value = 1)):
+    global queues
+    if not queues[ctx.guild_id] or len(ctx.guild_id) < index:
+        await ctx.respond('Specified index does not exist')
+    else:
+        item = queues[ctx.guild_id].pop(index-1)
+        await ctx.respond(f'Deleted item: {getTrackString(item)}')
+
 '''
 Debug Commands
 '''
