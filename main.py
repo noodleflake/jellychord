@@ -160,9 +160,14 @@ async def search(ctx: discord.ApplicationContext,
         # entries = [discord.SelectOption(label=getTrackString(i, type=True)) for i in res]
 
         class searchSelectView(discord.ui.View):
+            def __init__(self):
+                super(searchSelectView, self).__init__()
+                self._selected = False
+
             async def on_timeout(self):
-                self.disable_all_items()
-                await self.message.edit("Selection timed out.")
+                if not self._selected:
+                    self.disable_all_items()
+                    await self.message.edit("Selection timed out.")
 
             @discord.ui.select(
                 select_type=discord.ComponentType.string_select,
@@ -170,7 +175,7 @@ async def search(ctx: discord.ApplicationContext,
                 options=entries
             )
             async def select_callback(self, select: discord.ui.Select, interaction: discord.Interaction):
-                self.disable_all_items()
+                self._selected = True
                 await interaction.response.edit_message(content=f'Playing {getTrackString(res[0], type=True)}',view=None)
                 await playHelperGeneric(res[int(select.values[0])], ctx, when)
 
