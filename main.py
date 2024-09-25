@@ -15,6 +15,7 @@ LIMIT = max(1, min(config['search-limit'], 25))
 DEBUG = config["enable-debug"]
 if DEBUG:
     DEBUG_SERVER = config["debug-server"]
+PLAYLIST_PAGESIZE = 20
 
 queues = {}
 playing = {}
@@ -159,7 +160,9 @@ class searchDropdown(discord.ui.Select):
         self.ctx = ctx
         self.when = when
         self.items = items
-        for i in range(len(items)):
+        self.max_values = 1
+        self.min_values = 1
+        for i in range(min(len(items), 25)):
             label = getTrackString(items[i], type=not bool(type))
             label = label[:97]+'...' if len(label) > 100 else label
             self.add_option(label = label, value = str(i))
@@ -168,11 +171,26 @@ class searchDropdown(discord.ui.Select):
         await interaction.response.edit_message(content=f'Playing {getTrackString(self.items[int(self._selected_values[0])], type=True)}',view=None)
         await playHelperGeneric(self.items[int(self._selected_values[0])], self.ctx, self.when)
 
+async def onSearchViewTimeout(self: discord.ui.View):
+    self.disable_all_items()
+    await self.message.edit("Selection timed out.", view=None)
 
-async def onViewTimeout(self):
-    if not self._selected:
-        self.disable_all_items()
-        await self.message.edit("Selection timed out.")
+class listDropdown(discord.ui.Select):
+    def __init__(self, pages: int):
+        super(listDropdown, self).__init__()
+        self.pages = pages
+        self.page = 0
+        self.max_values = 1
+        self.min_values = 1
+        for i in range(pages):
+            self.add_option(label=str(i+1))
+    
+    async def callback(self, interaction: discord.Interaction):
+        self.pages = len(queues[interaction.guild_id])//PLAYLIST_PAGESIZE+1
+        self.page = int(self._selected_values[0])-1
+        tracks = queues[interaction.guild_id][self.page*PLAYLIST_PAGESIZE:self.page*PLAYLIST_PAGESIZE+PLAYLIST_PAGESIZE]
+        strs = [f'{i+self.page*PLAYLIST_PAGESIZE+1}. {getTrackString(tracks[i])}' for i in range(len(tracks))]
+        await interaction.response.edit_message(content=f'Tracks in playlist:\n{"\n".join(strs)}')
 
 '''
 Bot Commands
@@ -196,7 +214,7 @@ async def search(ctx: discord.ApplicationContext,
         await ctx.respond('You are not in any voice channel')
     else:
         view = discord.ui.View()
-        view.on_timeout = onViewTimeout
+        view.on_timeout = onSearchViewTimeout
         view.add_item(searchDropdown(res, ctx, when))
 
         await ctx.respond('Select an item to play:', view=view)
@@ -242,8 +260,10 @@ async def nowplaying(ctx: discord.ApplicationContext):
 async def queue(ctx: discord.ApplicationContext):
     if ctx.guild_id in queues:
         tracks = queues[ctx.guild_id]
-        strs = [f'{i}. {getTrackString(tracks[i])}' for i in range(len(tracks))]
-        await ctx.respond(f'Tracks in playlist:\n{"\n".join(strs)}')
+        strs = [f'{i}. {getTrackString(tracks[i])}' for i in range(min(len(tracks), PLAYLIST_PAGESIZE))]
+        view = discord.ui.View()
+        view.add_item(listDropdown(len(tracks)//PLAYLIST_PAGESIZE+1))
+        await ctx.respond(f'Tracks in playlist:\n{"\n".join(strs)}', view=view)
     else:
         await ctx.respond('Empty Queue')
 
