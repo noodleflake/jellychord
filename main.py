@@ -254,6 +254,9 @@ class listView(discord.ui.View):
         self.prevButton.disabled = self.page == 0
         self.nextButton.disabled = self.page == pages - 1
         self.selection.update_options(pages)
+    
+    async def on_timeout(self):
+        self.disable_all_items()
 
 '''
 Bot Commands
