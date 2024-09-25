@@ -16,6 +16,9 @@ Requirements related to the bot server:
 - Python and Poetry
 - An internet connection that does not block access to Discord Voice
 
+> [!IMPORTANT]
+> Due to how Discord voice works, you NEED a stable internet connection on the bot server, or else music might stutter, play fast/slow or otherwise not work properly. The device hosting the bot SHOULD have a hard wired connection to the internet whenever possible. It SHOULD NOT use Wi-fi or powerline adapters. If you don't have a good internet connection, please find somewhere else to host this bot. Since it isn't actually doing any transcoding, basically anything you can install the environment on will run it without problems. The connection to Jellyfin is buffered, so you don't need to worry about internet quality that much.
+
 ## How to setup
 
 You will need to show file extensions if you are on Windows.
