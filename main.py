@@ -195,15 +195,6 @@ async def search(ctx: discord.ApplicationContext,
     elif not ctx.author.voice and not ctx.voice_client:
         await ctx.respond('You are not in any voice channel')
     else:
-        entries = []
-        for i in range(len(res)):
-            label = getTrackString(res[i], type=not bool(type))
-            label = label[:97]+'...' if len(label) > 100 else label
-            entries.append(discord.SelectOption(
-                label = label,
-                value = str(i)
-            ))
-
         view = discord.ui.View()
         view.on_timeout = onViewTimeout
         view.add_item(searchDropdown(res, ctx, when))
