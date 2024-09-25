@@ -84,4 +84,5 @@ Framework Limitation:
 
 I don't need myself but you are welcome to send PRs:
 
+- Playlists (I don't have playlists on my server)
 - Login as Jellyfin user instead of using apikey
