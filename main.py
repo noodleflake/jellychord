@@ -105,7 +105,7 @@ def playNextTrack(guild, error=None):
     global queues
     if guild.id in queues:
         playing[guild.id] = queues[guild.id].pop(0)
-        playing['playtime-offset'] = datetime.timedelta()
+        playing[guild.id]['playtime-offset'] = datetime.timedelta()
         if not queues[guild.id]: 
             queues.pop(guild.id)
         url = JF_APICLIENT.getAudioHls(playing[guild.id]["Id"],br)
@@ -113,7 +113,8 @@ def playNextTrack(guild, error=None):
         # change to 'copy' after py-cord 2.7 is out
         audio = discord.FFmpegOpusAudio(url, codec='libopus')
         audio.read() # remove this line when py-cord 2.7 is out
-        playing['starttime'] = datetime.datetime.now()
+        playing[guild.id]['starttime'] = datetime.datetime.now()
+        playing[guild.id]['paused'] = False
         vc.play(audio, after=lambda e: playNextTrack(guild, e))
     else:
         playing.pop(guild.id)
@@ -145,9 +146,9 @@ def formatTimeSecs(secs: int, force_hrs: bool = False) -> str:
     h = secs // 3600
     
     if h or force_hrs:
-        return f'{h}:{m:2d}:{s:2d}'
+        return f'{h}:{m:02d}:{s:02d}'
     else:
-        return f'{m:2d}:{s:2d}'
+        return f'{m:02d}:{s:02d}'
 
 '''
 Bot Commands
@@ -172,8 +173,10 @@ async def search(ctx: discord.ApplicationContext,
     else:
         entries = []
         for i in range(len(res)):
+            label = getTrackString(res[i], type=not bool(type))
+            label = label[:97]+'...' if len(label) > 100 else label
             entries.append(discord.SelectOption(
-                label = getTrackString(res[i]),
+                label = label,
                 value = str(i)
             ))
         
@@ -194,7 +197,7 @@ async def search(ctx: discord.ApplicationContext,
             )
             async def select_callback(self, select: discord.ui.Select, interaction: discord.Interaction):
                 self._selected = True
-                await interaction.response.edit_message(content=f'Playing {getTrackString(res[0], type=True)}',view=None)
+                await interaction.response.edit_message(content=f'Playing {getTrackString(res[int(select.values[0])], type=True)}',view=None)
                 await playHelperGeneric(res[int(select.values[0])], ctx, when)
 
         await ctx.respond('Select an item to play:', view=searchSelectView())
@@ -228,8 +231,9 @@ async def skip(ctx: discord.ApplicationContext):
 async def nowplaying(ctx: discord.ApplicationContext):
     if ctx.guild_id in playing:
         track = playing[ctx.guild_id]
-        td = datetime.datetime.now() - track['starttime']
-        td += track['playtime-offset']
+        td = track['playtime-offset']
+        if not playing[ctx.guild_id]['paused']:
+            td += datetime.datetime.now() - track['starttime']
         length = track["Length"]
         await ctx.respond(f'Currently Playing: {getTrackString(track)} {formatTimeSecs(td.seconds, length >= 3600)}/{formatTimeSecs(length)}')
     else:
@@ -258,13 +262,14 @@ async def start(ctx: discord.ApplicationContext):
 
 @cmdgrp.command()
 async def pause(ctx: discord.ApplicationContext):
+    global playing
     if ctx.voice_client:
-        if ctx.voice_client.paused:
+        if playing[ctx.guild_id]['paused']:
             await ctx.respond('Already paused')
         else:
             await ctx.respond('Pausing playback')
-            global playing
             td = datetime.datetime.now() - playing[ctx.guild_id]['starttime']
+            playing[ctx.guild_id]['paused'] = True
             playing[ctx.guild_id]['playtime-offset'] += td
             ctx.voice_client.pause()
     else:
@@ -272,11 +277,12 @@ async def pause(ctx: discord.ApplicationContext):
 
 @cmdgrp.command()
 async def resume(ctx: discord.ApplicationContext):
+    global playing
     if ctx.voice_client:
-        if ctx.voice_client.paused:
+        if playing[ctx.guild_id]['paused']:
             await ctx.respond('Resuming playback')
-            global playing
             playing[ctx.guild_id]['starttime'] = datetime.datetime.now()
+            playing[ctx.guild_id]['paused'] = False
             ctx.voice_client.resume()
         else:
             await ctx.respond('Already playing')
@@ -296,7 +302,7 @@ async def stop(ctx: discord.ApplicationContext):
 @cmdgrp.command()
 async def shuffle(ctx: discord.ApplicationContext):
     global queues
-    if not queues[ctx.guild_id]:
+    if not ctx.guild_id in queues:
         await ctx.respond('Playlist is empty')
     else:
         await ctx.respond('Shuffling playlist')
@@ -306,7 +312,7 @@ async def shuffle(ctx: discord.ApplicationContext):
 async def remove(ctx: discord.ApplicationContext,
                  index: discord.Option(int, min_value = 1)):
     global queues
-    if not queues[ctx.guild_id]:
+    if not ctx.guild_id in queues:
         await ctx.respond('Queue is empty')
     elif len(queues[ctx.guild_id]) < index:
         await ctx.respond('Specified index does not exist')
@@ -320,7 +326,7 @@ async def remove(ctx: discord.ApplicationContext,
 async def promote(ctx: discord.ApplicationContext,
                   index: discord.Option(int, min_value = 1)):
     global queues
-    if not queues[ctx.guild_id]:
+    if not ctx.guild_id in queues:
         await ctx.respond('Playlist is empty')
     elif len(queues[ctx.guild_id]) < index:
         await ctx.respond('Specified index does not exist')
@@ -333,7 +339,7 @@ async def promote(ctx: discord.ApplicationContext,
 async def demote(ctx: discord.ApplicationContext,
                  index: discord.Option(int, min_value = 1)):
     global queues
-    if not queues[ctx.guild_id]:
+    if ctx.guild_id not in queues:
         await ctx.respond('Playlist is empty')
     elif len(queues[ctx.guild_id]) < index:
         await ctx.respond('Specified index does not exist')
@@ -346,7 +352,7 @@ async def demote(ctx: discord.ApplicationContext,
 async def playnow(ctx: discord.ApplicationContext,
                   index: discord.Option(int, min_value=1)):
     global queues
-    if not queues[ctx.guild_id]:
+    if ctx.guild_id not in queues:
         await ctx.respond('Playlist is empty')
     elif len(queues[ctx.guild_id]) < index:
         await ctx.respond('Specified index does not exist')
@@ -355,6 +361,15 @@ async def playnow(ctx: discord.ApplicationContext,
         queues[ctx.guild_id].insert(0, item)
         await ctx.respond(f'Now playing track: {getTrackString(item)}')
         ctx.voice_client.stop()
+
+@cmdgrp.command()
+async def clear(ctx: discord.ApplicationContext):
+    global queues
+    if not ctx.guild_id in queues:
+        await ctx.respond('Playlist is empty')
+    else:
+        await ctx.respond('Playlist cleared')
+        queues.pop(ctx.guild_id)
 
 '''
 Debug Commands

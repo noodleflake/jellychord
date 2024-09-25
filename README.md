@@ -59,6 +59,8 @@ This list will assume the default prefix of `jfmusic`. This can be changed in th
   Shuffles the playlist
 - `/jfmusic remove <index>`
   Removes the item at the specified index from the playlist. Index starts with 1.
+- `/jfmusic clear`
+  Clears the queue for the current Discord server.
 - `/jfmusic promote <index>`
   Promotes the item at the specified index from the playlist to the front. Index starts with 1.
 - `/jfmusic demote <index>`

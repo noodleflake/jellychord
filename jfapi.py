@@ -36,6 +36,7 @@ class JFAPI():
         params = {
             'ApiKey': self.__apikey,
             'searchTerm': term,
+            'recursive': 'true'
         }
         if limit:
             params['limit'] = limit
@@ -43,10 +44,10 @@ class JFAPI():
             params['includeItemTypes'] = ','.join(types)
 
         async with self._session.get(
-            self.__getEndpointUrl('/Search/Hints'),
+            self.__getEndpointUrl('/Items'),
             params=params
         ) as res:
-            return (await res.json())["SearchHints"]
+            return (await res.json())["Items"]
 
     # Gets HLS stream for audio soundtrack with format Opus 16bit 48khz in fMP4 containers
     # Returns URL for use with external player (ffmpeg)
