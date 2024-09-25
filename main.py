@@ -178,19 +178,82 @@ async def onSearchViewTimeout(self: discord.ui.View):
 class listDropdown(discord.ui.Select):
     def __init__(self, pages: int):
         super(listDropdown, self).__init__()
-        self.pages = pages
-        self.page = 0
         self.max_values = 1
         self.min_values = 1
-        for i in range(pages):
-            self.add_option(label=str(i+1))
+        self.update_options(pages)
     
     async def callback(self, interaction: discord.Interaction):
-        self.pages = len(queues[interaction.guild_id])//PLAYLIST_PAGESIZE+1
-        self.page = int(self._selected_values[0])-1
-        tracks = queues[interaction.guild_id][self.page*PLAYLIST_PAGESIZE:self.page*PLAYLIST_PAGESIZE+PLAYLIST_PAGESIZE]
-        strs = [f'{i+self.page*PLAYLIST_PAGESIZE+1}. {getTrackString(tracks[i])}' for i in range(len(tracks))]
-        await interaction.response.edit_message(content=f'Tracks in playlist:\n{"\n".join(strs)}')
+        pages = len(queues[interaction.guild_id])//PLAYLIST_PAGESIZE+1
+        page = int(self._selected_values[0])-1
+        tracks = queues[interaction.guild_id][page*PLAYLIST_PAGESIZE:page*PLAYLIST_PAGESIZE+PLAYLIST_PAGESIZE]
+        strs = [f'{i+page*PLAYLIST_PAGESIZE+1}. {getTrackString(tracks[i])}' for i in range(len(tracks))]
+        self.view.page = page
+        self.view.updateItems(pages)
+        await interaction.response.edit_message(content=f'Tracks in playlist:\n{"\n".join(strs)}\nPage: {page+1}/{pages}', view=self.view)
+    
+    def update_options(self, pages):
+        self.options = [discord.SelectOption(label=str(i+1)) for i in range(min(pages, 25))]
+
+class listPrevButton(discord.ui.Button):
+    def __init__(self):
+        super(listPrevButton, self).__init__()
+        self.label = '◁'
+
+    async def callback(self, interaction: discord.Interaction):
+        pages = len(queues[interaction.guild_id])//PLAYLIST_PAGESIZE+1
+        self.view.page -= 1
+        page = self.view.page
+        tracks = queues[interaction.guild_id][page*PLAYLIST_PAGESIZE:page*PLAYLIST_PAGESIZE+PLAYLIST_PAGESIZE]
+        strs = [f'{i+page*PLAYLIST_PAGESIZE+1}. {getTrackString(tracks[i])}' for i in range(len(tracks))]
+        self.view.updateItems(pages)
+        await interaction.response.edit_message(content=f'Tracks in playlist:\n{"\n".join(strs)}\nPage: {page+1}/{pages}', view=self.view)
+
+class listNextButton(discord.ui.Button):
+    def __init__(self):
+        super(listNextButton, self).__init__()
+        self.label = '▷'
+
+    async def callback(self, interaction: discord.Interaction):
+        pages = len(queues[interaction.guild_id])//PLAYLIST_PAGESIZE+1
+        self.view.page += 1
+        page = self.view.page
+        tracks = queues[interaction.guild_id][page*PLAYLIST_PAGESIZE:page*PLAYLIST_PAGESIZE+PLAYLIST_PAGESIZE]
+        strs = [f'{i+page*PLAYLIST_PAGESIZE+1}. {getTrackString(tracks[i])}' for i in range(len(tracks))]
+        self.view.updateItems(pages)
+        await interaction.response.edit_message(content=f'Tracks in playlist:\n{"\n".join(strs)}\nPage: {page+1}/{pages}', view=self.view)
+
+
+class listRefreshButton(discord.ui.Button):
+    def __init__(self):
+        super(listRefreshButton, self).__init__()
+        self.label = '⟳'
+    
+    async def callback(self, interaction: discord.Interaction):
+        pages = len(queues[interaction.guild_id])//PLAYLIST_PAGESIZE+1
+        page = self.view.page
+        tracks = queues[interaction.guild_id][page*PLAYLIST_PAGESIZE:page*PLAYLIST_PAGESIZE+PLAYLIST_PAGESIZE]
+        strs = [f'{i+page*PLAYLIST_PAGESIZE+1}. {getTrackString(tracks[i])}' for i in range(len(tracks))]
+        self.view.updateItems(pages)
+        await interaction.response.edit_message(content=f'Tracks in playlist:\n{"\n".join(strs)}\nPage: {page+1}/{pages}', view=self.view)
+
+
+class listView(discord.ui.View):
+    def __init__(self, pages: int):
+        super(listView, self).__init__()
+        self.page = 0
+        self.selection = listDropdown(pages)
+        self.prevButton = listPrevButton()
+        self.nextButton = listNextButton()
+        self.prevButton.disabled = True
+        self.add_item(self.prevButton)
+        self.add_item(listRefreshButton())
+        self.add_item(self.nextButton)
+        self.add_item(self.selection)
+    
+    def updateItems(self, pages):
+        self.prevButton.disabled = self.page == 0
+        self.nextButton.disabled = self.page == pages - 1
+        self.selection.update_options(pages)
 
 '''
 Bot Commands
@@ -261,9 +324,7 @@ async def queue(ctx: discord.ApplicationContext):
     if ctx.guild_id in queues:
         tracks = queues[ctx.guild_id]
         strs = [f'{i}. {getTrackString(tracks[i])}' for i in range(min(len(tracks), PLAYLIST_PAGESIZE))]
-        view = discord.ui.View()
-        view.add_item(listDropdown(len(tracks)//PLAYLIST_PAGESIZE+1))
-        await ctx.respond(f'Tracks in playlist:\n{"\n".join(strs)}', view=view)
+        await ctx.respond(f'Tracks in playlist:\n{"\n".join(strs)}\nPage: 1/{len(tracks)//PLAYLIST_PAGESIZE+1}', view=listView(len(tracks)//PLAYLIST_PAGESIZE+1))
     else:
         await ctx.respond('Empty Queue')
 

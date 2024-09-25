@@ -70,9 +70,7 @@ This list will assume the default prefix of `jfmusic`. This can be changed in th
 
 ## Known limitations / issues / missing features
 
-Intend to fix:
-
-- No proper pagination in playlist
+Intend to fix: All fixed, report issues [here](https://github.com/felix920506/jfmusicbot/issues)
 
 Framework Limitation:
 
