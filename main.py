@@ -294,7 +294,8 @@ async def stop(ctx: discord.ApplicationContext):
     if ctx.voice_client:
         await ctx.respond('Stopping playback')
         global queues
-        queues.pop(ctx.guild_id)
+        if ctx.guild_id in queues:
+            queues.pop(ctx.guild_id)
         ctx.voice_client.stop()
     else:
         await ctx.respond('Not connected to any voice channel')
