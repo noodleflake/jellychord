@@ -151,6 +151,30 @@ def formatTimeSecs(secs: int, force_hrs: bool = False) -> str:
         return f'{m:02d}:{s:02d}'
 
 '''
+Discord View Related
+'''
+class searchDropdown(discord.ui.Select):
+    def __init__(self, items: list[dict], ctx: discord.ApplicationContext, when: str):
+        super(searchDropdown, self).__init__()
+        self.ctx = ctx
+        self.when = when
+        self.items = items
+        for i in range(len(items)):
+            label = getTrackString(items[i], type=not bool(type))
+            label = label[:97]+'...' if len(label) > 100 else label
+            self.add_option(label = label, value = str(i))
+    
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.edit_message(content=f'Playing {getTrackString(self.items[int(self._selected_values[0])], type=True)}',view=None)
+        await playHelperGeneric(self.items[int(self._selected_values[0])], self.ctx, self.when)
+
+
+async def onViewTimeout(self):
+    if not self._selected:
+        self.disable_all_items()
+        await self.message.edit("Selection timed out.")
+
+'''
 Bot Commands
 '''
 if DEBUG:
@@ -179,28 +203,12 @@ async def search(ctx: discord.ApplicationContext,
                 label = label,
                 value = str(i)
             ))
-        
-        class searchSelectView(discord.ui.View):
-            def __init__(self):
-                super(searchSelectView, self).__init__()
-                self._selected = False
 
-            async def on_timeout(self):
-                if not self._selected:
-                    self.disable_all_items()
-                    await self.message.edit("Selection timed out.")
+        view = discord.ui.View()
+        view.on_timeout = onViewTimeout
+        view.add_item(searchDropdown(res, ctx, when))
 
-            @discord.ui.select(
-                select_type=discord.ComponentType.string_select,
-                max_values=1, min_values=1,
-                options=entries
-            )
-            async def select_callback(self, select: discord.ui.Select, interaction: discord.Interaction):
-                self._selected = True
-                await interaction.response.edit_message(content=f'Playing {getTrackString(res[int(select.values[0])], type=True)}',view=None)
-                await playHelperGeneric(res[int(select.values[0])], ctx, when)
-
-        await ctx.respond('Select an item to play:', view=searchSelectView())
+        await ctx.respond('Select an item to play:', view=view)
 
 @cmdgrp.command()
 async def play(ctx: discord.ApplicationContext,
@@ -243,8 +251,8 @@ async def nowplaying(ctx: discord.ApplicationContext):
 async def queue(ctx: discord.ApplicationContext):
     if ctx.guild_id in queues:
         tracks = queues[ctx.guild_id]
-        strs = [getTrackString(track) for track in tracks]
-        await ctx.respond(f'Tracks in queue:\n{"\n".join(strs)}')
+        strs = [f'{i}. {getTrackString(tracks[i])}' for i in range(len(tracks))]
+        await ctx.respond(f'Tracks in playlist:\n{"\n".join(strs)}')
     else:
         await ctx.respond('Empty Queue')
 
