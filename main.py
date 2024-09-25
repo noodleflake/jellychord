@@ -3,6 +3,7 @@ import discord.ext
 import asyncio
 import yaml
 import random
+import datetime
 
 from jfapi import JFAPI
 
@@ -104,6 +105,7 @@ def playNextTrack(guild, error=None):
     global queues
     if guild.id in queues:
         playing[guild.id] = queues[guild.id].pop(0)
+        playing['playtime-offset'] = datetime.timedelta()
         if not queues[guild.id]: 
             queues.pop(guild.id)
         url = JF_APICLIENT.getAudioHls(playing[guild.id]["Id"],br)
@@ -111,6 +113,7 @@ def playNextTrack(guild, error=None):
         # change to 'copy' after py-cord 2.7 is out
         audio = discord.FFmpegOpusAudio(url, codec='libopus')
         audio.read() # remove this line when py-cord 2.7 is out
+        playing['starttime'] = datetime.datetime.now()
         vc.play(audio, after=lambda e: playNextTrack(guild, e))
     else:
         playing.pop(guild.id)
@@ -135,6 +138,16 @@ def getTrackString(item: dict, artistLimit: int = 1, type: bool = False):
     
     res += item["Name"]
     return res
+
+def formatTimeSecs(secs: int, force_hrs: bool = False) -> str:
+    s = secs % 60
+    m = secs // 60 % 60
+    h = secs // 3600
+    
+    if h or force_hrs:
+        return f'{h}:{m:2d}:{s:2d}'
+    else:
+        return f'{m:2d}:{s:2d}'
 
 '''
 Bot Commands
@@ -215,7 +228,10 @@ async def skip(ctx: discord.ApplicationContext):
 async def nowplaying(ctx: discord.ApplicationContext):
     if ctx.guild_id in playing:
         track = playing[ctx.guild_id]
-        await ctx.respond(f'Currently Playing: {getTrackString(track)}')
+        td = datetime.datetime.now() - track['starttime']
+        td += track['playtime-offset']
+        length = track["Length"]
+        await ctx.respond(f'Currently Playing: {getTrackString(track)} {formatTimeSecs(td.seconds, length >= 3600)}/{formatTimeSecs(length)}')
     else:
         await ctx.respond('Not Currently Playing')
 
@@ -243,16 +259,27 @@ async def start(ctx: discord.ApplicationContext):
 @cmdgrp.command()
 async def pause(ctx: discord.ApplicationContext):
     if ctx.voice_client:
-        await ctx.respond('Pausing playback')
-        ctx.voice_client.pause()
+        if ctx.voice_client.paused:
+            await ctx.respond('Already paused')
+        else:
+            await ctx.respond('Pausing playback')
+            global playing
+            td = datetime.datetime.now() - playing[ctx.guild_id]['starttime']
+            playing[ctx.guild_id]['playtime-offset'] += td
+            ctx.voice_client.pause()
     else:
         await ctx.respond('Not connect to any voice channel')
 
 @cmdgrp.command()
 async def resume(ctx: discord.ApplicationContext):
     if ctx.voice_client:
-        await ctx.respond('Resuming playback')
-        ctx.voice_client.resume()
+        if ctx.voice_client.paused:
+            await ctx.respond('Resuming playback')
+            global playing
+            playing[ctx.guild_id]['starttime'] = datetime.datetime.now()
+            ctx.voice_client.resume()
+        else:
+            await ctx.respond('Already playing')
     else:
         await ctx.respond('Not connect to any voice channel')
 

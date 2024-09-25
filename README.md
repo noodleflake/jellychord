@@ -70,7 +70,6 @@ This list will assume the default prefix of `jfmusic`. This can be changed in th
 
 Intend to fix:
 
-- No elapsed time in playback status
 - No proper pagination in playlist
 
 Framework Limitation:
