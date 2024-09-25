@@ -1,6 +1,6 @@
 # jfmusicbot
 
-    Jellyfin music bot for Discord.
+Jellyfin music bot for Discord.
 
 ## Requirements
 
