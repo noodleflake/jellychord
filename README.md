@@ -1,6 +1,6 @@
 # jfmusicbot
 
-    Jellyfin music bot for Discord.
+Jellyfin music bot for Discord.
 
 ## Requirements
 
@@ -15,6 +15,9 @@ Requirements related to the bot server:
 - A valid install of `ffmpeg` added to PATH
 - Python and Poetry
 - An internet connection that does not block access to Discord Voice
+
+> [!IMPORTANT]
+> Due to how Discord voice works, you NEED a stable internet connection on the bot server, or else music might stutter, play fast/slow or otherwise not work properly. The device hosting the bot SHOULD have a hard wired connection to the internet whenever possible. It SHOULD NOT use Wi-fi or powerline adapters. If you don't have a good internet connection, please find somewhere else to host this bot. Since it isn't actually doing any transcoding, basically anything you can install the environment on will run it without problems. The connection to Jellyfin is buffered, so you don't need to worry about internet quality that much.
 
 ## How to setup
 
@@ -32,6 +35,9 @@ You will need to show file extensions if you are on Windows.
 1. Open a terminal in the bot folder
 2. run `poetry run python3 main.py` to start the bot. You may need to run `poetry run python main.py` if you are on Windows.
 3. press `Ctrl+C` in the terminal window to exit the bot. MacOS uses the same key bind.
+
+It is normal to see these messages in the console. This is caused by a problem in Pycord and will be fixed in a future release of Pycord. Please ignore these warnings.
+<img width="1001" alt="Codec AVOption b (set bitrate (in bits/s)) has not been used for any stream. The most likely reason is either wrong type (e.g. a video option with no video streams) or that it is a private option of some encoder which was not actually used for any stream." src="https://github.com/user-attachments/assets/59b9deb5-d250-4012-bb88-20eb2b948e5d">
 
 ## Commands
 
@@ -78,4 +84,5 @@ Framework Limitation:
 
 I don't need myself but you are welcome to send PRs:
 
+- Playlists (I don't have playlists on my server)
 - Login as Jellyfin user instead of using apikey
