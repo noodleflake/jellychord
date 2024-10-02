@@ -1,6 +1,6 @@
-# jfmusicbot
+# JellyChord
 
-Jellyfin music bot for Discord.
+Jellyfin music bot for Discord. Name courtesy of [@thornbill](https://github.com/thornbill)
 
 ## Requirements
 
