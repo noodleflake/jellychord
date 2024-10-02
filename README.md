@@ -41,42 +41,42 @@ It is normal to see these messages in the console. This is caused by a problem i
 
 ## Commands
 
-This list will assume the default prefix of `jfmusic`. This can be changed in the config.
+This list will assume the default prefix of `jellychord`. This can be changed in the config.
 
-- `/jfmusic search <term> <type> <when>`
+- `/jellychord search <term> <type> <when>`
   Search for a list of items using `<term>`. Options for `<when>` term: `now` stops current track and plays the specified track. `next` places the specified track next in the queue. `last` is the default behavior, places the specified track at the end of the playlist.
-- `/jfmusic play <term> <type> <when>`
+- `/jellychord play <term> <type> <when>`
   Parameters work the same as the above command, except it directly uses the first result returned from the server, instead of asking the user to choose from a list of options
-- `/jfmusic skip`
+- `/jellychord skip`
   Skips the current playing track
-- `/jfmusic nowplaying`
+- `/jellychord nowplaying`
   Shows the current playing track
-- `/jfmusic queue`
+- `/jellychord queue`
   Shows the current playlist
-- `/jfmusic start`
+- `/jellychord start`
   Starts the player and plays the playlist
-- `/jfmusic pause`
+- `/jellychord pause`
   Pauses playback
-- `/jfmusic resume`
+- `/jellychord resume`
   Resumes playback
-- `/jfmusic stop`
+- `/jellychord stop`
   Stops playback and clears the playlist
-- `/jfmusic shuffle`
+- `/jellychord shuffle`
   Shuffles the playlist
-- `/jfmusic remove <index>`
+- `/jellychord remove <index>`
   Removes the item at the specified index from the playlist. Index starts with 1.
-- `/jfmusic clear`
+- `/jellychord clear`
   Clears the queue for the current Discord server.
-- `/jfmusic promote <index>`
+- `/jellychord promote <index>`
   Promotes the item at the specified index from the playlist to the front. Index starts with 1.
-- `/jfmusic demote <index>`
+- `/jellychord demote <index>`
   Demotes the item at the specified index from the playlist to the back. Index starts with 1.
-- `/jfmusic playnow <index>`
+- `/jellychord playnow <index>`
   Skips the current playing track and play the specified index from the playlist. Index starts with 1. This does NOT discard tracks before the specified index. How this works is promote the specified index then skip the current track.
 
 ## Known limitations / issues / missing features
 
-Intend to fix: All fixed, report issues [here](https://github.com/felix920506/jfmusicbot/issues)
+Intend to fix: All fixed, report issues [here](https://github.com/felix920506/jellychord/issues)
 
 Framework Limitation:
 

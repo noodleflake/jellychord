@@ -8,9 +8,9 @@ jf-server: "https://media.example.com/jellyfin"
 jf-apikey: "jellyfin api key"
 
 # slashcommand group for your bot
-# setting it to "jfmusic" will make the commands be 
-# /jfmusic <something> <parameters>
-command-group: "jfmusic"
+# setting it to "jellychord" will make the commands be 
+# /jellychord <something> <parameters>
+command-group: "jellychord"
 
 # Number of items to display when searching, min: 1
 # Setting too high may result in causing DoS attack on server

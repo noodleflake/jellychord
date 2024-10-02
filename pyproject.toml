@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "jfmusicbot"
+name = "jellychord"
 version = "0.1.0"
 description = ""
 authors = ["felix920506 <felix920506@gmail.com>"]
