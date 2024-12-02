@@ -27,8 +27,5 @@ RUN pip install poetry
 RUN poetry config virtualenvs.create false \
     && poetry install --no-dev
 
-# Expose ports used by your application, adjust if needed
-EXPOSE 8080
-
 # Command to run the bot
 CMD ["poetry", "run", "python3", "main.py"]
