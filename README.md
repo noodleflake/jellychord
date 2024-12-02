@@ -74,6 +74,46 @@ This list will assume the default prefix of `jellychord`. This can be changed in
 - `/jellychord playnow <index>`
   Skips the current playing track and play the specified index from the playlist. Index starts with 1. This does NOT discard tracks before the specified index. How this works is promote the specified index then skip the current track.
 
+## Building the Docker Image
+
+To create a Docker image for JellyChord, you can use the following command. Make sure you're in the root directory of the project, where your Dockerfile is located:
+
+```bash
+docker build -t jellychord .
+```
+
+This command will build the Docker image and tag it as `jellychord`.
+
+## Running the Docker Container
+
+Once the image is built, you can run the container using the following command:
+
+```bash
+docker run -d \
+  -v /docker/jellychord/config.yml:/app/config.yml \
+  --name jellychord \
+  jellychord
+```
+
+### Important Considerations:
+
+1. **Mounting Configuration File:**
+   - The above command mounts the host configuration file located at `/docker/jellychord/config.yml` to the container's `/app/config.yml`. This file must exist on your host machine before running the container.
+   
+2. **Using the Example Config:**
+   - If you don't already have a `config.yml`, you can copy the example configuration file provided with the project and modify it according to your environment. Execute the following on your host machine:
+     ```bash
+     cp config.yml.example /docker/jellychord/config.yml
+     ```
+   - Edit `/docker/jellychord/config.yml` to include your specific settings, such as API keys and server details.
+
+### Troubleshooting:
+- Ensure that paths are correct and files are accessible by Docker, especially the config file.
+- Ensure you have read permissions set for the `config.yml` file using `chmod +r /docker/jellychord/config.yml` if necessary.
+- Check Docker daemon logs if you encounter issues for further insights.
+
+Following these steps should help you build and run your JellyChord Docker container smoothly. Feel free to modify the port numbers and paths based on your setup requirements.
+
 ## Known limitations / issues / missing features
 
 Intend to fix: All fixed, report issues [here](https://github.com/felix920506/jellychord/issues)
